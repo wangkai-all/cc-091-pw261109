@@ -1,0 +1,166 @@
+{
+  "currency": "USD",
+  "fictional": true,
+  "orgName": "星图数仓（虚构示例）",
+  "teams": {
+    "analytics": {
+      "name": "分析平台组",
+      "color_slot": 1
+    },
+    "finance": {
+      "name": "财务数据组",
+      "color_slot": 2
+    },
+    "growth": {
+      "name": "增长分析组",
+      "color_slot": 3
+    },
+    "platform": {
+      "name": "数据平台组",
+      "color_slot": 4
+    },
+    "support": {
+      "name": "业务支持组",
+      "color_slot": 5
+    }
+  },
+  "prices": {
+    "datasets": {
+      "sales_orders": {
+        "name": "销售订单域",
+        "scan_usd_per_gb": 0.024,
+        "compute_usd_per_cpu_hour": 0.34
+      },
+      "user_events": {
+        "name": "用户行为域",
+        "scan_usd_per_gb": 0.017,
+        "compute_usd_per_cpu_hour": 0.28
+      },
+      "finance_ledger": {
+        "name": "财务总账域",
+        "scan_usd_per_gb": 0.043,
+        "compute_usd_per_cpu_hour": 0.52
+      },
+      "ml_features": {
+        "name": "特征样本域",
+        "scan_usd_per_gb": 0.02,
+        "compute_usd_per_cpu_hour": 0.4
+      },
+      "ops_inventory": {
+        "name": "仓储库存域",
+        "scan_usd_per_gb": 0.03,
+        "compute_usd_per_cpu_hour": 0.3
+      }
+    }
+  },
+  "allocation": {
+    "default": {
+      "method": "bytes"
+    },
+    "datasets": {
+      "finance_ledger": {
+        "method": "weighted",
+        "bytes_weight": 0.6,
+        "duration_weight": 0.4
+      },
+      "ml_features": {
+        "method": "duration"
+      }
+    }
+  },
+  "retryPolicy": {
+    "mode": "terminal-attempt"
+  },
+  "budgets": {
+    "versions": [
+      {
+        "version": "BUD-2026-10-v1",
+        "effective_month": "2026-10",
+        "note": "10 月初版团队月预算（虚构）",
+        "teams": {
+          "analytics": 480,
+          "finance": 640,
+          "growth": 380,
+          "platform": 560,
+          "support": 430
+        }
+      },
+      {
+        "version": "BUD-2026-11-v2",
+        "effective_month": "2026-11",
+        "note": "11 月调整：增长组预算下调，平台组上调（虚构）",
+        "teams": {
+          "analytics": 400,
+          "finance": 500,
+          "growth": 210,
+          "platform": 620,
+          "support": 240
+        }
+      }
+    ]
+  },
+  "revisions": [
+    {
+      "id": "ATT-2026-10-v1",
+      "seq": 1,
+      "effective_date": "2026-10-01",
+      "author": "数据治理",
+      "note": "初始归属：以查询日志中的团队字段为准",
+      "changes": []
+    },
+    {
+      "id": "ATT-2026-11-v2",
+      "seq": 2,
+      "effective_date": "2026-11-01",
+      "author": "财务数据组 · 林某",
+      "note": "11 月起：增长组两个共享报表查询改由平台组承担；认领一条缺归属查询",
+      "changes": [
+        {
+          "query_id": "q-retry-01-a2",
+          "from_team_id": "growth",
+          "to_team_id": "platform",
+          "reason": "共享报表由平台组承担"
+        },
+        {
+          "query_id": "q-crossmonth-02",
+          "from_team_id": "growth",
+          "to_team_id": "platform",
+          "reason": "调度任务归属修正"
+        },
+        {
+          "query_id": "q-noteam-04",
+          "from_team_id": null,
+          "to_team_id": "growth",
+          "reason": "补录团队归属"
+        }
+      ]
+    },
+    {
+      "id": "ATT-2026-11-v3",
+      "seq": 3,
+      "effective_date": "2026-11-10",
+      "author": "分析平台组 · 周某",
+      "note": "更正：q-retry-01 最终归属分析平台组；撤回一条误改",
+      "changes": [
+        {
+          "query_id": "q-retry-01-a2",
+          "from_team_id": "platform",
+          "to_team_id": "analytics",
+          "reason": "更正共享报表归属"
+        },
+        {
+          "query_id": "q-crossmonth-02",
+          "from_team_id": "platform",
+          "to_team_id": "growth",
+          "reason": "撤回误改"
+        },
+        {
+          "query_id": "q-noteam-01",
+          "from_team_id": null,
+          "to_team_id": "support",
+          "reason": "支持组认领"
+        }
+      ]
+    }
+  ]
+}

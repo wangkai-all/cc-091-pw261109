@@ -1,0 +1,13 @@
+{
+  "name": "warehouse-cost-board",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "数仓成本看板：脱敏查询记录导入、按团队/数据集/日期分摊、预算与归属修订",
+  "scripts": {
+    "start": "node server.mjs",
+    "fixtures": "node tools/generate_fixtures.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "smoke": "node tests/smoke.mjs"
+  }
+}

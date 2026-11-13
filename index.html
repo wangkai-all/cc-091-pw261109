@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>数仓成本账房 · 团队 / 数据集 / 账期</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232a78d6'/><path d='M7 22V12m6 10V8m6 14v-7m6 7V10' stroke='white' stroke-width='2.4' stroke-linecap='round'/></svg>">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="26" height="26"><rect width="32" height="32" rx="7" fill="#2a78d6"/><path d="M7 22V12m6 10V8m6 14v-7m6 7V10" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <h1>数仓成本账房</h1>
+          <p class="brand-sub" id="org-name">星图数仓 · 资源与成本治理</p>
+        </div>
+      </div>
+      <div class="topbar-meta">
+        <span class="badge badge-fictional" title="演示数据，不对应任何真实计费 API">虚构演示账单 · 无真实计费</span>
+        <span class="meta-chip" id="data-source">数据来源：本地脱敏样例</span>
+        <div class="topbar-actions">
+          <button class="btn" id="open-import" type="button">导入脱敏记录</button>
+          <button class="btn btn-ghost" id="toggle-theme" type="button" aria-label="切换深浅色">深浅色</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="main" aria-live="off">
+      <section class="filters" id="filters" aria-label="全局筛选">
+        <div class="filter-group">
+          <span class="filter-label" id="label-month">账期</span>
+          <select id="month-select" class="control" aria-labelledby="label-month"></select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label" id="label-revision">归属修订</span>
+          <select id="revision-select" class="control" aria-labelledby="label-revision"></select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label" id="label-compare">对比基线</span>
+          <select id="compare-select" class="control" aria-labelledby="label-compare"></select>
+        </div>
+        <div class="filter-note" id="filter-note"></div>
+      </section>
+
+      <section class="kpi-row" id="kpi-row" aria-label="账期概览"></section>
+
+      <div class="board">
+        <section class="card card-daily" aria-labelledby="daily-title">
+          <div class="card-head">
+            <div>
+              <h2 id="daily-title">每日资源消耗</h2>
+              <p class="card-sub" id="daily-sub">按团队堆叠 · 金额仅含已核实的计量</p>
+            </div>
+            <div class="card-tools">
+              <div class="segmented" role="tablist" aria-label="每日消耗视图">
+                <button role="tab" class="seg-btn is-active" data-daily-view="chart" aria-selected="true">图表</button>
+                <button role="tab" class="seg-btn" data-daily-view="table" aria-selected="false">表格</button>
+              </div>
+            </div>
+          </div>
+          <div id="daily-legend" class="legend"></div>
+          <div id="daily-chart" class="chart-wrap"></div>
+          <div id="daily-table" class="table-wrap" hidden></div>
+          <p class="footnote" id="daily-footnote"></p>
+        </section>
+
+        <section class="card" aria-labelledby="budget-title">
+          <div class="card-head">
+            <div>
+              <h2 id="budget-title">团队预算进度</h2>
+              <p class="card-sub" id="budget-sub"></p>
+            </div>
+          </div>
+          <div id="budget-list" class="budget-list"></div>
+          <p class="footnote">预算版本按账期生效，仅作用于已归属成本；未归属与未知成本不占用团队预算。</p>
+        </section>
+
+        <section class="card" aria-labelledby="dataset-title">
+          <div class="card-head">
+            <div>
+              <h2 id="dataset-title">数据集消耗排名</h2>
+              <p class="card-sub">点击数据集可查看对应查询</p>
+            </div>
+          </div>
+          <div id="dataset-rank" class="rank-list"></div>
+        </section>
+
+        <section class="card" aria-labelledby="reason-title">
+          <div class="card-head">
+            <div>
+              <h2 id="reason-title">超额原因拆解</h2>
+              <p class="card-sub" id="reason-sub"></p>
+            </div>
+          </div>
+          <div id="reason-list" class="reason-list"></div>
+          <p class="footnote">原因金额按优先级占用超额额度，合计严格等于超额金额；无法解释的部分单列「其他」，不做估算。</p>
+        </section>
+
+        <section class="card card-wide" aria-labelledby="exception-title">
+          <div class="card-head">
+            <div>
+              <h2 id="exception-title">异常与边界记录</h2>
+              <p class="card-sub">重试、取消、缺归属、未知成本与跨月记录分开处理，点击可查看查询明细</p>
+            </div>
+            <div class="segmented" role="tablist" aria-label="异常分类" id="exception-tabs"></div>
+          </div>
+          <div id="exception-body" class="exception-body"></div>
+        </section>
+
+        <section class="card card-wide" aria-labelledby="bill-title">
+          <div class="card-head">
+            <div>
+              <h2 id="bill-title">账单预览</h2>
+              <p class="card-sub">虚构账单，按当前归属修订与账期生成；未归属与未知成本单列，不摊入团队</p>
+            </div>
+            <div class="card-tools">
+              <button class="btn btn-ghost" id="download-invoice" type="button">下载虚构账单</button>
+              <button class="btn btn-ghost" id="download-lines" type="button">导出计费行 CSV</button>
+            </div>
+          </div>
+          <div class="bill-layout">
+            <div id="bill-preview" class="invoice-preview"></div>
+            <div id="bill-compare" class="bill-compare"></div>
+          </div>
+        </section>
+
+        <section class="card card-wide" aria-labelledby="revision-title">
+          <div class="card-head">
+            <div>
+              <h2 id="revision-title">归属修订与预算版本</h2>
+              <p class="card-sub">版本只追加不覆盖；账单可用任一版本重述</p>
+            </div>
+            <div class="card-tools">
+              <button class="btn btn-ghost" id="open-revision-form" type="button">新增归属修订</button>
+              <button class="btn btn-ghost" id="open-budget-form" type="button">新增预算版本</button>
+            </div>
+          </div>
+          <div class="history-layout">
+            <div id="revision-history" class="history-col"></div>
+            <div id="budget-history" class="history-col"></div>
+          </div>
+          <div id="config-forms" class="config-forms" hidden></div>
+        </section>
+
+        <section class="card card-wide card-quiet" aria-labelledby="rules-title">
+          <div class="card-head">
+            <div>
+              <h2 id="rules-title">计费与分摊口径</h2>
+              <p class="card-sub">页面展示的全部是中间值，可直接核对</p>
+            </div>
+          </div>
+          <div class="rules-grid">
+            <div>
+              <h3>单表成本</h3>
+              <p>扫描成本 = 扫描字节 ÷ 1 GiB × 单价；计算成本 = 表耗时 ÷ 1 小时 × CPU 小时单价。两者相加为该表基础成本。</p>
+            </div>
+            <div>
+              <h3>多表分摊</h3>
+              <p>按数据集配置的分摊权重（扫描字节占比 / 耗时占比 / 加权）用最大余数法拆到分，保证各表分配合计等于查询总额。</p>
+            </div>
+            <div>
+              <h3>跨月</h3>
+              <p>按查询起止时间的墙钟重合时长拆入自然月，最后一月吸收舍入余数；单月账单只取该月分摊段。</p>
+            </div>
+            <div>
+              <h3>重试与取消</h3>
+              <p>同一逻辑请求仅记一次账；失败/超时重试的消耗单列为「未重复记账」。取消查询在取消前已发生的计量仍计入实际成本。</p>
+            </div>
+            <div>
+              <h3>未知成本</h3>
+              <p>缺扫描量、缺耗时或数据集未配置单价时，成本记为未知，不估算、不摊给其他团队；仅展示可核实的笔数、扫描量与原因。</p>
+            </div>
+            <div>
+              <h3>归属</h3>
+              <p>归属修订按生效日期自动叠加；账单可切换任一修订重述，修订历史保留作者、原因与版本序号；日志缺团队时不猜测。</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="tooltip" class="tooltip" role="status" aria-live="polite" hidden></div>
+
+  <aside id="drawer" class="drawer" hidden aria-labelledby="drawer-title">
+    <div class="drawer-head">
+      <button class="btn btn-ghost btn-back" id="drawer-back" type="button" hidden>返回</button>
+      <h2 id="drawer-title">明细</h2>
+      <button class="icon-btn" id="drawer-close" type="button" aria-label="关闭明细">×</button>
+    </div>
+    <div id="drawer-body" class="drawer-body"></div>
+  </aside>
+  <div id="scrim" class="scrim" hidden></div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
